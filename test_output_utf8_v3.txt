@@ -1,0 +1,9 @@
+﻿============================= test session starts =============================
+platform win32 -- Python 3.12.7, pytest-9.0.2, pluggy-1.6.0
+rootdir: C:\Users\shrey\quant projects\3\stochlab
+plugins: anyio-4.12.0
+collected 2 items
+
+backend\tests\test_heat.py ..                                            [100%]
+
+============================== 2 passed in 0.07s ==============================

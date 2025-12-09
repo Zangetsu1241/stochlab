@@ -1,0 +1,81 @@
+﻿============================= test session starts =============================
+platform win32 -- Python 3.12.7, pytest-9.0.2, pluggy-1.6.0
+rootdir: C:\Users\shrey\quant projects\3\stochlab
+plugins: anyio-4.12.0
+collected 2 items
+
+backend\tests\test_heat.py F.                                            [100%]
+
+================================== FAILURES ===================================
+_______________________________ test_heat_basic _______________________________
+
+    def test_heat_basic():
+>       frames = solve_heat(alpha=0.5, dt=0.0005, dx=0.01, t_steps=50, domain=1.0, init="pulse")
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+backend\tests\test_heat.py:5: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    def solve_heat(
+        *,
+        alpha: float,
+        dt: float,
+        dx: float,
+        t_steps: int,
+        domain: float = 1.0,
+        init: str = "pulse",
+        bc: str = "dirichlet",
+        snapshot_interval: int = 1,
+        return_as_list: bool = True,
+        progress_callback: Optional[Callable[[int, int], None]] = None,
+    ) -> Union[np.ndarray, List[List[float]]]:
+        """
+        Solve 1D heat equation using explicit finite differences:
+            u^{n+1}_i = u^n_i + alpha * dt * (u^n_{i+1} - 2 u^n_i + u^n_{i-1}) / dx^2
+    
+        Parameters
+        ----------
+        alpha : float
+            Diffusivity coefficient.
+        dt : float
+            Time step.
+        dx : float
+            Spatial grid spacing.
+        t_steps : int
+            Number of time steps to simulate.
+        domain : float
+            Length of spatial domain [0, domain].
+        init : str
+            Initial condition type: "pulse", "sin", "random".
+        bc : str
+            Boundary condition: "dirichlet" (u=0 at boundaries) supported.
+        snapshot_interval : int
+            Save every `snapshot_interval` time steps into frames.
+        return_as_list : bool
+            If True, return frames as nested Python lists for JSON serialization.
+        progress_callback : Optional[callable]
+            If provided, called as progress_callback(current_step, total_steps).
+    
+        Returns
+        -------
+        frames : np.ndarray shape (n_frames, n_x) or list[list[float]]
+            Time-ordered frames of the solution.
+        """
+        if dx <= 0 or dt <= 0:
+            raise ValueError("dx and dt must be positive")
+        if t_steps <= 0:
+            raise ValueError("t_steps must be positive integer")
+    
+        # stability condition for explicit scheme: r = alpha * dt / dx**2 <= 1/2
+        r = alpha * dt / (dx * dx)
+        if r > 0.5:
+>           raise ValueError(
+                f"Unstable parameters: CFL r = {r:.6f} > 0.5. "
+                "Reduce dt or increase dx, or reduce alpha."
+            )
+E           ValueError: Unstable parameters: CFL r = 2.500000 > 0.5. Reduce dt or increase dx, or reduce alpha.
+
+backend\app\solvers\heat_fd.py:81: ValueError
+=========================== short test summary info ===========================
+FAILED backend/tests/test_heat.py::test_heat_basic - ValueError: Unstable par...
+========================= 1 failed, 1 passed in 0.12s =========================
