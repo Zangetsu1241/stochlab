@@ -27,3 +27,8 @@ dist/
 # OS
 .DS_Store
 Thumbs.db
+
+# Archives
+*.rar
+*.zip
+*.7z
