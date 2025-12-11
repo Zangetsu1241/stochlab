@@ -1,10 +1,14 @@
+# Force Reload
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from backend.app.api import heatmap, gbm, pricing, hedging, wave, reaction, uq, auth, history
 from backend.app import models, database
 
-# Create Tables
-models.Base.metadata.create_all(bind=database.engine)
+# Create Tables safely
+try:
+    models.Base.metadata.create_all(bind=database.engine)
+except Exception as e:
+    print(f"Warning: Database table creation failed (possibly locked): {e}")
 
 app = FastAPI()
 

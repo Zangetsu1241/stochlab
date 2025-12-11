@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
+import { API_BASE_URL } from '../lib/api';
 
 interface LoginModalProps {
     isOpen: boolean;
@@ -37,14 +38,14 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                 params.append('username', username);
                 params.append('password', password);
 
-                const res = await axios.post('http://127.0.0.1:8000/api/v1/auth/token', params, config);
+                const res = await axios.post(`${API_BASE_URL}/auth/token`, params, config);
                 console.log("Login success:", res.data);
                 login(res.data.access_token, username);
                 onClose();
             } else {
                 console.log("Attempting registration...");
                 // Register
-                await axios.post('http://127.0.0.1:8000/api/v1/auth/register', { username, password }, { timeout: 5000 });
+                await axios.post(`${API_BASE_URL}/auth/register`, { username, password }, { timeout: 5000 });
                 console.log("Registration success. Attempting auto-login...");
 
                 // Auto login
@@ -52,7 +53,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                 params.append('username', username);
                 params.append('password', password);
 
-                const res = await axios.post('http://127.0.0.1:8000/api/v1/auth/token', params, config);
+                const res = await axios.post(`${API_BASE_URL}/auth/token`, params, config);
                 console.log("Auto-login success:", res.data);
                 login(res.data.access_token, username);
                 onClose();

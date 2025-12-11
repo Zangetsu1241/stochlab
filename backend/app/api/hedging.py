@@ -23,7 +23,7 @@ class HedgingResponse(BaseModel):
     pnl: List[float]
 
 @router.post("/simulate", response_model=HedgingResponse)
-async def simulate_hedging_endpoint(params: HedgingInput):
+def simulate_hedging_endpoint(params: HedgingInput):
     """
     Simulate Delta Hedging Strategy P&L.
     """

@@ -23,7 +23,7 @@ class PricingResponse(BaseModel):
     rho: float
 
 @router.post("/black-scholes", response_model=PricingResponse)
-async def price_option(params: PricingInput):
+def price_option(params: PricingInput):
     """
     Calculate Option Price and Greeks using Black-Scholes model.
     """

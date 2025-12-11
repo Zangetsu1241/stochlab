@@ -24,7 +24,7 @@ class WaveResponse(BaseModel):
     energy: List[float]
 
 @router.post("/simulate", response_model=WaveResponse)
-async def simulate_wave(input_data: WaveInput):
+def simulate_wave(input_data: WaveInput):
     """
     Simulate the 1D Stochastic Wave Equation.
     """

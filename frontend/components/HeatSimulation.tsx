@@ -427,7 +427,7 @@ export default function HeatSimulation({ isActive }: HeatSimulationProps) {
                                 <Plot
                                     data={[
                                         {
-                                            y: energyHistory,
+                                            y: energyHistory.slice(0, currentFrameIndex + 1),
                                             type: 'scatter',
                                             mode: 'lines',
                                             marker: { color: CHART_COLORS.accent },

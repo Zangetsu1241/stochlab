@@ -25,6 +25,7 @@ export default function Home() {
             <span className="font-bold text-white text-lg">S</span>
           </div>
           <span className="font-bold text-xl tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-teal-200 to-blue-200">StochLab</span>
+          <span className="text-[10px] text-zinc-600 font-mono ml-4">DEBUG: {activeTab}</span>
         </div>
 
         {/* Tab Navigation */}
@@ -102,22 +103,22 @@ export default function Home() {
       {/* Content Area - Filling remaining height */}
       <main className="flex-1 relative overflow-hidden pt-16">
         {/* We keep components mounted but hidden to preserve state */}
-        <div className={activeTab === 'heat' ? 'h-full w-full block animate-in fade-in duration-500' : 'hidden'}>
+        <div className={activeTab === 'heat' ? 'h-full w-full block' : 'hidden'}>
           <HeatSimulation isActive={activeTab === 'heat'} />
         </div>
-        <div className={activeTab === 'pricing' ? 'h-full w-full block animate-in fade-in duration-500' : 'hidden'}>
+        <div className={activeTab === 'pricing' ? 'h-full w-full block' : 'hidden'}>
           <OptionPricing isActive={activeTab === 'pricing'} />
         </div>
-        <div className={activeTab === 'hedging' ? 'h-full w-full block animate-in fade-in duration-500' : 'hidden'}>
+        <div className={activeTab === 'hedging' ? 'h-full w-full block' : 'hidden'}>
           <DeltaHedging isActive={activeTab === 'hedging'} />
         </div>
-        <div className={activeTab === 'wave' ? 'h-full w-full block animate-in fade-in duration-500' : 'hidden'}>
+        <div className={activeTab === 'wave' ? 'h-full w-full block' : 'hidden'}>
           <WaveSimulation isActive={activeTab === 'wave'} />
         </div>
-        <div className={activeTab === 'reaction' ? 'h-full w-full block animate-in fade-in duration-500' : 'hidden'}>
+        <div className={activeTab === 'reaction' ? 'h-full w-full block' : 'hidden'}>
           <ReactionDiffusion isActive={activeTab === 'reaction'} />
         </div>
-        <div className={activeTab === 'monte_carlo' ? 'h-full w-full block animate-in fade-in duration-500' : 'hidden'}>
+        <div className={activeTab === 'monte_carlo' ? 'h-full w-full block' : 'hidden'}>
           <MonteCarloContainer isActive={activeTab === 'monte_carlo'} />
         </div>
       </main>

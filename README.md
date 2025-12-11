@@ -9,7 +9,7 @@ StochLab is a high-performance web application for visualizing and interacting w
 
 ### 🔐 User & History System
 - **Authentication**: Secure JWT-based Login and Registration.
-- **Simulation History**: Save your favorite simulation parameters and analysis scenarios to your personal history.
+- **Simulation History**: Automatically save your simulation parameters to your personal account (currently available for select solvers like Heat Equation and GBM).
 - **One-Click Restore**: Reload any saved simulation state instantly to resume analysis.
 
 ### 1. Stochastic Heat Equation
@@ -61,7 +61,6 @@ StochLab is a high-performance web application for visualizing and interacting w
 ### Prerequisites
 - Node.js 18+
 - Python 3.10+
-- Git
 
 ### 1. Backend Setup
 ```bash
@@ -91,7 +90,7 @@ npm run dev
 3.  Select a simulation from the top navigation bar.
 4.  Adjust parameters in the **Left Sidebar** to control the simulation.
 5.  Click **Start** or **Run Analysis** to execute.
-6.  Use the **History Panel** (right side or bottom) to save/load scenarios.
+6.  Use the **History Panel** (right side) to save/load scenarios (where available).
 
 ## 🔍 Directory Structure
 

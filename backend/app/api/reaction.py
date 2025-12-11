@@ -27,7 +27,7 @@ class ReactionResponse(BaseModel):
     parameters: Dict[str, float]
 
 @router.post("/simulate", response_model=ReactionResponse)
-async def simulate_reaction(input_data: ReactionInput):
+def simulate_reaction(input_data: ReactionInput):
     """
     Simulate the 2D Stochastic Reaction-Diffusion System (Gray-Scott).
     Returns the time evolution of the U component (concentration).

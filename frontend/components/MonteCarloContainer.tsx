@@ -40,10 +40,10 @@ export default function MonteCarloContainer({ isActive }: MonteCarloContainerPro
             {/* Content Content - Pass isActive only to the visible one if we want to mount/unmount or hide */}
             {/* We keep both mounted to preserve state, but visibility is toggled */}
             <div className="flex-1 relative overflow-hidden">
-                <div className={subTab === 'paths' ? 'h-full w-full block animate-in fade-in duration-300' : 'hidden'}>
+                <div className={subTab === 'paths' ? 'h-full w-full block' : 'hidden'}>
                     <GBMSimulation isActive={isActive && subTab === 'paths'} />
                 </div>
-                <div className={subTab === 'uq' ? 'h-full w-full block animate-in fade-in duration-300' : 'hidden'}>
+                <div className={subTab === 'uq' ? 'h-full w-full block' : 'hidden'}>
                     <MonteCarloUQ isActive={isActive && subTab === 'uq'} />
                 </div>
             </div>

@@ -18,7 +18,7 @@ class GBMResponse(BaseModel):
     paths: List[List[float]]
 
 @router.post("/simulate", response_model=GBMResponse)
-async def get_gbm_paths(params: GBMInput):
+def get_gbm_paths(params: GBMInput):
     """
     Simulate Geometric Brownian Motion paths.
     """

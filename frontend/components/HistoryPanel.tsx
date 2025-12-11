@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { format } from 'date-fns';
+import { API_BASE_URL } from '../lib/api';
 
 interface HistoryItem {
     id: number;
@@ -27,7 +28,7 @@ export default function HistoryPanel({ simType, onLoad }: HistoryPanelProps) {
         if (!user || !token) return;
         setLoading(true);
         try {
-            const res = await axios.get(`http://127.0.0.1:8000/api/v1/history/${simType}`, {
+            const res = await axios.get(`${API_BASE_URL}/history/${simType}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setHistory(res.data);
@@ -106,7 +107,7 @@ export default function HistoryPanel({ simType, onLoad }: HistoryPanelProps) {
 export const saveHistory = async (simType: string, params: any, token: string | null) => {
     if (!token) return;
     try {
-        await axios.post('http://127.0.0.1:8000/api/v1/history/', {
+        await axios.post(`${API_BASE_URL}/history/`, {
             simulation_type: simType,
             parameters: JSON.stringify(params)
         }, {

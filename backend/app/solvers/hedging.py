@@ -1,7 +1,7 @@
 import numpy as np
 from scipy.stats import norm
 from typing import Dict, List, Literal
-from app.solvers.black_scholes import calculate_black_scholes
+from backend.app.solvers.black_scholes import calculate_black_scholes
 
 def simulate_delta_hedging(
     *,

@@ -21,7 +21,7 @@ class UQResponse(BaseModel):
     timing: float
 
 @router.post("/simulate", response_model=UQResponse)
-async def simulate_uq(input_data: UQInput):
+def simulate_uq(input_data: UQInput):
     """
     Run Monte Carlo Uncertainty Quantification.
     """

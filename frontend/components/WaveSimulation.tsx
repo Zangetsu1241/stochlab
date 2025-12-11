@@ -354,7 +354,7 @@ export default function WaveSimulation({ isActive }: WaveSimulationProps) {
                                 <Plot
                                     data={[
                                         {
-                                            y: energyHistory,
+                                            y: energyHistory.slice(0, currentFrameIndex + 1),
                                             type: 'scatter',
                                             mode: 'lines',
                                             marker: { color: CHART_COLORS.danger },
