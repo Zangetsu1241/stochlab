@@ -245,22 +245,23 @@ export default function DeltaHedging({ isActive }: DeltaHedgingProps) {
 
                 <Methodology
                     title="Dynamic Delta Hedging"
-                    description="Simulates the process of maintaining a delta-neutral portfolio to hedge against price movements of an underlying asset. The strategy involves continuously rebalancing the portfolio by buying or selling the underlying asset."
+                    description="A risk management strategy that aims to replicate the payoff of an option by dynamically trading the underlying asset. The portfolio consists of a short position in the option and a long position of 'Δ' shares in the underlying stock, creating a 'Delta-Neutral' state where the portfolio value is immune to small changes in stock price."
                     formula={[
-                        "Π = V_option - Δ · S",
-                        "Δ = ∂V/∂S (Hedge Ratio)",
-                        "PnL arises from discrete rebalancing errors and Gamma exposure."
+                        "Portfolio Value: Π(t) = V_option(S, t) - Δ(S, t) · S(t)",
+                        "Hedge Ratio (Delta): Δ = ∂V/∂S",
+                        "Gamma PnL (Approximation): dΠ ≈ ½ · Γ · S² · (dS/S)² - Θ · dt",
+                        "Profit/Loss arises from the difference between realized volatility and implied volatility, and discrete rebalancing intervals."
                     ]}
                     params={[
-                        { label: "Rebalancing", desc: "How frequently the hedge is adjusted (Daily vs Weekly).", icon: "t" },
-                        { label: "Gamma Risk", desc: "Risk that Delta changes significantly between rebalancing.", icon: "Γ" },
-                        { label: "Transaction Costs", desc: "Impact of spread/fees on PnL (Ignored here).", icon: "$" }
+                        { label: "Rebalancing", desc: "Frequency of hedge adjustment (dt). Smaller dt = Less Error.", icon: "dt" },
+                        { label: "Gamma (Γ)", desc: "Curvature of the option price; determines the 'rebalancing cost'.", icon: "Γ" },
+                        { label: "Slippage", desc: "Performance drag caused by inability to hedge continuously.", icon: "ε" }
                     ]}
                     details={[
-                        { label: "Strategy", value: "Delta Neutral" },
-                        { label: "Rebalancing", value: "Discrete Time Intervals" },
-                        { label: "Source of Loss", value: "Gamma Convexity & Volatility" },
-                        { label: "Ideal PnL", value: "Zero (Perfect Hedge)" }
+                        { label: "Replication", value: "Dynamic Hedging (Black-Scholes)" },
+                        { label: "PnL Driver", value: "Realized vs. Implied Volatility" },
+                        { label: "Risk Type", value: "Gamma (Convexity) Risk" },
+                        { label: "Objective", value: "Replicate Payoff / Eliminate Directional Risk" }
                     ]}
                 />
             </div>

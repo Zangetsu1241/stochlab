@@ -41,6 +41,7 @@ export type PricingInput = {
     T: number;
     r: number;
     sigma: number;
+    q?: number;
     option_type: "call" | "put";
 };
 

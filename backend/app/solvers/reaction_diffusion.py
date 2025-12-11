@@ -123,11 +123,20 @@ def solve_reaction_diffusion(
         # Update
         # F(1-U) -> Feed
         # -(F+k)V -> Kill
-        du = Du * Lu - uv2 + F * (1.0 - accumulated_U) + noise_u
-        dv = Dv * Lv + uv2 - (F + k) * accumulated_V + noise_v
         
-        accumulated_U += du * dt
-        accumulated_V += dv * dt
+        # Deterministic Drift Step
+        du_dt = Du * Lu - uv2 + F * (1.0 - accumulated_U)
+        dv_dt = Dv * Lv + uv2 - (F + k) * accumulated_V
+        
+        accumulated_U += du_dt * dt
+        accumulated_V += dv_dt * dt
+        
+        # Stochastic Diffusion Step (Euler-Maruyama)
+        # dX = ... dt + sigma dW
+        # dW ~ N(0, dt) = sqrt(dt) * N(0, 1)
+        if sigma > 0:
+            accumulated_U += np.random.normal(0, 1, (nx, ny)) * sigma * np.sqrt(dt)
+            accumulated_V += np.random.normal(0, 1, (nx, ny)) * sigma * np.sqrt(dt)
         
         # Clip to prevent numerical blowup?
         # Gray-Scott is usually bounded [0,1], but noise can push it out.

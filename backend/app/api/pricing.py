@@ -11,6 +11,7 @@ class PricingInput(BaseModel):
     T: float = Field(..., description="Time to Maturity (years)")
     r: float = Field(..., description="Risk-free Interest Rate (decimal)")
     sigma: float = Field(..., gt=0, description="Volatility (decimal)")
+    q: float = Field(0.0, ge=0, description="Dividend Yield (decimal)")
     option_type: Literal["call", "put"] = Field("call", description="Option Type")
 
 class PricingResponse(BaseModel):
@@ -33,6 +34,7 @@ async def price_option(params: PricingInput):
             T=params.T,
             r=params.r,
             sigma=params.sigma,
+            q=params.q,
             option_type=params.option_type
         )
         return result

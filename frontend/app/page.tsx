@@ -2,19 +2,19 @@
 
 import React, { useState } from 'react';
 import HeatSimulation from '../components/HeatSimulation';
-import GBMSimulation from '../components/GBMSimulation';
+
 import OptionPricing from '../components/OptionPricing';
 import DeltaHedging from '../components/DeltaHedging';
 import WaveSimulation from '../components/WaveSimulation';
 import ReactionDiffusion from '../components/ReactionDiffusion';
-import MonteCarloUQ from '../components/MonteCarloUQ';
+import MonteCarloContainer from '../components/MonteCarloContainer';
 import LoginModal from '../components/LoginModal';
 import { useAuth } from '../context/AuthContext';
 
 export default function Home() {
   const { user, logout } = useAuth();
   const [isLoginOpen, setIsLoginOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<'heat' | 'gbm' | 'pricing' | 'hedging' | 'wave' | 'reaction' | 'uq'>('heat');
+  const [activeTab, setActiveTab] = useState<'heat' | 'pricing' | 'hedging' | 'wave' | 'reaction' | 'monte_carlo'>('heat');
 
   return (
     <div className="flex flex-col h-screen bg-black text-white selection:bg-teal-500/30">
@@ -35,12 +35,6 @@ export default function Home() {
               className={`px-6 py-2 rounded-full font-medium text-sm transition-all duration-300 ${activeTab === 'heat' ? 'bg-teal-500/20 text-teal-400 border border-teal-500/30 shadow-[0_0_15px_rgba(20,184,166,0.2)]' : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/5'}`}
             >
               Heat Eq
-            </button>
-            <button
-              onClick={() => setActiveTab('gbm')}
-              className={`px-6 py-2 rounded-full font-medium text-sm transition-all duration-300 ${activeTab === 'gbm' ? 'bg-fuchsia-500/20 text-fuchsia-400 border border-fuchsia-500/30 shadow-[0_0_15px_rgba(217,70,239,0.2)]' : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/5'}`}
-            >
-              GBM
             </button>
             <button
               onClick={() => setActiveTab('pricing')}
@@ -67,8 +61,8 @@ export default function Home() {
               Patterns
             </button>
             <button
-              onClick={() => setActiveTab('uq')}
-              className={`px-6 py-2 rounded-full font-medium text-sm transition-all duration-300 ${activeTab === 'uq' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30 shadow-[0_0_15px_rgba(245,158,11,0.2)]' : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/5'}`}
+              onClick={() => setActiveTab('monte_carlo')}
+              className={`px-6 py-2 rounded-full font-medium text-sm transition-all duration-300 ${activeTab === 'monte_carlo' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30 shadow-[0_0_15px_rgba(245,158,11,0.2)]' : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/5'}`}
             >
               Monte Carlo
             </button>
@@ -111,9 +105,6 @@ export default function Home() {
         <div className={activeTab === 'heat' ? 'h-full w-full block animate-in fade-in duration-500' : 'hidden'}>
           <HeatSimulation isActive={activeTab === 'heat'} />
         </div>
-        <div className={activeTab === 'gbm' ? 'h-full w-full block animate-in fade-in duration-500' : 'hidden'}>
-          <GBMSimulation isActive={activeTab === 'gbm'} />
-        </div>
         <div className={activeTab === 'pricing' ? 'h-full w-full block animate-in fade-in duration-500' : 'hidden'}>
           <OptionPricing isActive={activeTab === 'pricing'} />
         </div>
@@ -126,8 +117,8 @@ export default function Home() {
         <div className={activeTab === 'reaction' ? 'h-full w-full block animate-in fade-in duration-500' : 'hidden'}>
           <ReactionDiffusion isActive={activeTab === 'reaction'} />
         </div>
-        <div className={activeTab === 'uq' ? 'h-full w-full block animate-in fade-in duration-500' : 'hidden'}>
-          <MonteCarloUQ isActive={activeTab === 'uq'} />
+        <div className={activeTab === 'monte_carlo' ? 'h-full w-full block animate-in fade-in duration-500' : 'hidden'}>
+          <MonteCarloContainer isActive={activeTab === 'monte_carlo'} />
         </div>
       </main>
     </div>

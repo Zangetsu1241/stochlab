@@ -23,16 +23,19 @@ function normalCDF(x: number): number {
     return prob;
 }
 
-function calculateBS_Client(S: number, K: number, T: number, r: number, sigma: number, type: "call" | "put"): number {
-    if (T <= 0) return type === "call" ? Math.max(0, S - K) : Math.max(0, K - S);
+function calculateBS_Client(S: number, K: number, T: number, r: number, sigma: number, q: number, type: "call" | "put"): number {
+    if (T <= 0) {
+        // Intrinsic value (regardless of q)
+        return type === "call" ? Math.max(0, S - K) : Math.max(0, K - S);
+    }
 
-    const d1 = (Math.log(S / K) + (r + 0.5 * sigma * sigma) * T) / (sigma * Math.sqrt(T));
+    const d1 = (Math.log(S / K) + (r - q + 0.5 * sigma * sigma) * T) / (sigma * Math.sqrt(T));
     const d2 = d1 - sigma * Math.sqrt(T);
 
     if (type === "call") {
-        return S * normalCDF(d1) - K * Math.exp(-r * T) * normalCDF(d2);
+        return S * Math.exp(-q * T) * normalCDF(d1) - K * Math.exp(-r * T) * normalCDF(d2);
     } else {
-        return K * Math.exp(-r * T) * normalCDF(-d2) - S * normalCDF(-d1);
+        return K * Math.exp(-r * T) * normalCDF(-d2) - S * Math.exp(-q * T) * normalCDF(-d1);
     }
 }
 
@@ -46,6 +49,7 @@ export default function OptionPricing({ isActive }: OptionPricingProps) {
         T: 1.0,
         r: 0.05,
         sigma: 0.2,
+        q: 0.0,
         option_type: "call"
     });
 
@@ -84,6 +88,7 @@ export default function OptionPricing({ isActive }: OptionPricingProps) {
     // --- Chart Data Generation ---
     const chartData = useMemo(() => {
         const { K, T, r, sigma, option_type } = params;
+        const q = params.q || 0; // Default to 0 if undefined
         const xObj: number[] = [];
         const yCurrent: number[] = [];
         const yIntrinsic: number[] = [];
@@ -99,7 +104,7 @@ export default function OptionPricing({ isActive }: OptionPricingProps) {
             xObj.push(s);
 
             // Current Theoretical Price
-            yCurrent.push(calculateBS_Client(s, K, T, r, sigma, option_type));
+            yCurrent.push(calculateBS_Client(s, K, T, r, sigma, q, option_type));
 
             // Intrinsic Value (at Expiry)
             const intrinsic = option_type === "call" ? Math.max(0, s - K) : Math.max(0, K - s);
@@ -159,12 +164,13 @@ export default function OptionPricing({ isActive }: OptionPricingProps) {
                             { label: "Time (Years)", name: "T", min: 0.1, max: 5, step: 0.1 },
                             { label: "Volatility (σ)", name: "sigma", min: 0.01, max: 2, step: 0.01 },
                             { label: "Risk-free Rate (r)", name: "r", min: 0, max: 0.2, step: 0.01 },
+                            { label: "Dividend Yield (q)", name: "q", min: 0, max: 0.2, step: 0.01 },
                         ].map((field) => (
                             <div key={field.name}>
                                 <div className="flex justify-between mb-2">
                                     <label className="text-zinc-400 text-xs uppercase font-bold tracking-wider">{field.label}</label>
                                     <span className="text-cyan-400 text-xs font-mono bg-cyan-900/20 px-1.5 py-0.5 rounded border border-cyan-900/30">
-                                        {(params as any)[field.name]}
+                                        {(params as any)[field.name] !== undefined ? (params as any)[field.name] : 0}
                                     </span>
                                 </div>
                                 <input
@@ -173,7 +179,7 @@ export default function OptionPricing({ isActive }: OptionPricingProps) {
                                     max={field.max}
                                     step={field.step}
                                     name={field.name}
-                                    value={(params as any)[field.name]}
+                                    value={(params as any)[field.name] !== undefined ? (params as any)[field.name] : 0}
                                     onChange={handleParamChange}
                                     className="w-full h-1.5 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-teal-500 hover:accent-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-500/30"
                                 />
@@ -274,23 +280,25 @@ export default function OptionPricing({ isActive }: OptionPricingProps) {
 
                 <Methodology
                     title="Black-Scholes-Merton Model"
-                    description="A mathematical model for the dynamics of a financial market containing derivative investment instruments. It provides a theoretical estimate of the price of European-style options."
+                    description="The Black-Scholes-Merton model calculates the theoretical price of European options, extending the original Black-Scholes model to account for continuous dividend yields. This makes it suitable for pricing options on dividend-paying stocks and indices."
                     formula={[
-                        "C(S, t) = N(d₁)Sₜ - N(d₂)Ke⁻ʳ⁽ᵀ⁻ᵗ⁾",
-                        "d₁ = (ln(S/K) + (r + σ²/2)T) / (σ√T)",
-                        "d₂ = d₁ - σ√T",
+                        "Call: C(S, t) = S e⁻qt N(d₁) - K e⁻ʳᵗ N(d₂)",
+                        "Put: P(S, t) = K e⁻ʳᵗ N(-d₂) - S e⁻qt N(-d₁)",
+                        "d₁ = (ln(S/K) + (r - q + σ²/2)t) / (σ√t)",
+                        "d₂ = d₁ - σ√t",
                         "N(•): CDF of Standard Normal Distribution"
                     ]}
                     params={[
                         { label: "Strike (K)", desc: "The set price at which the option can be exercised.", icon: "K" },
-                        { label: "Risk-free Rate (r)", desc: "Theoretical return of an investment with zero risk.", icon: "r" },
-                        { label: "Greeks", desc: "Delta (Δ), Gamma (Γ), Theta (Θ), Vega (ν), Rho (ρ).", icon: "Σ" }
+                        { label: "Risk-free Rate (r)", desc: "Theoretical return of a risk-free investment.", icon: "r" },
+                        { label: "Volatility (σ)", desc: "Measure of the underlying asset's price application.", icon: "σ" },
+                        { label: "Dividend Yield (q)", desc: "Continuous dividend yield paid by the asset.", icon: "q" }
                     ]}
                     details={[
                         { label: "Option Style", value: "European (Exercise at Expiry)" },
-                        { label: "Assumption", value: "Constant Volatility & Rate" },
+                        { label: "Dividends", value: "Continuous Yield (Merton Extension)" },
                         { label: "Greeks Method", value: "Closed-Form Analytic Derivatives" },
-                        { label: "Underlying", value: "Non-Dividend Paying Stock" }
+                        { label: "Underlying", value: "Stock / Index" }
                     ]}
                 />
             </div>

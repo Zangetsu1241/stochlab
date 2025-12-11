@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.stats import norm
 from typing import Dict, List, Literal
+from app.solvers.black_scholes import calculate_black_scholes
 
 def simulate_delta_hedging(
     *,
@@ -10,6 +11,7 @@ def simulate_delta_hedging(
     r: float,
     sigma: float,
     mu: float,
+    q: float = 0.0,
     option_type: Literal["call", "put"] = "call",
     rebalance_freq: str = "daily"  # daily, weekly
 ) -> Dict[str, List[float]]:
@@ -38,13 +40,22 @@ def simulate_delta_hedging(
     t_steps = np.linspace(0, T, N + 1)
     
     # 1. Generate GBM Path
-    # dS = S * mu * dt + S * sigma * dW
-    # S(t) = S0 * exp((mu - 0.5*sigma^2)t + sigma*W(t))
+    # dS = S * (mu - q) * dt + S * sigma * dW  <-- drift is mu, but risk-neutral drift is r-q. Real world drift is mu. 
+    # Usually dividend drops price: dS = (mu - q) S dt + sigma S dW. 
+    # BUT standard GBM definition: S_t includes dividends? 
+    # No, typically S_t is price indices. If stock simulates Total Return, we assume dividends reinvested? 
+    # No, option pricing assumes S is ex-dividend price.
+    # So drift of Price Process is (mu - q).
+    
     dW = np.random.normal(0, np.sqrt(dt), size=N)
     W = np.cumsum(dW)
     W = np.insert(W, 0, 0.0)
     
-    drift = (mu - 0.5 * sigma**2) * t_steps
+    # Real-world drift of the STOCK PRICE itself involves dividend drop
+    # S(t) drift is mu - q
+    net_mu = mu - q
+    
+    drift = (net_mu - 0.5 * sigma**2) * t_steps
     diffusion = sigma * W
     S = S0 * np.exp(drift + diffusion)
     
@@ -54,7 +65,6 @@ def simulate_delta_hedging(
     pnls = np.zeros(N + 1)
     
     # Tracking Account
-    # Cash balance calculates interest earned/paid on borrowing
     cash = 0.0
     shares_held = 0.0
     
@@ -65,60 +75,60 @@ def simulate_delta_hedging(
         time_to_maturity = T - curr_t
         
         # Calculate BS Price and Delta
-        bs_res = _black_scholes(curr_S, K, max(time_to_maturity, 1e-6), r, sigma, option_type)
+        # Use our robust solver
+        bs_res = calculate_black_scholes(
+            S=curr_S, K=K, T=max(time_to_maturity, 1e-6), r=r, sigma=sigma, q=q, option_type=option_type
+        )
         curr_opt_val = bs_res['price']
         curr_delta = bs_res['delta']
         
         if i == 0:
-            # Initial Setup: Short Option, Long Delta Shares
-            # Cash flow: +Premium - (Shares * S)
+            # Initial Setup: Shor Option (-), Long Delta Shares (+)
+            # Cash = Premium - Cost of Shares
             premium_received = curr_opt_val
             shares_held = curr_delta
             cost_of_shares = shares_held * curr_S
             
             cash = premium_received - cost_of_shares
             
-            # Initial PnL is usually 0 (or spread cost) - technically 0 theoretically
-            # PnL = Asset (Stock + Cash) - Liability (Option value)
-            # PnL = (shares_held * S + cash) - curr_opt_val
-            #     = (delta * S + (Premium - delta * S)) - Premium = 0
+            # Initial PnL = 0
             pnls[i] = 0.0
             
         else:
-            # Rebalance
-            # Apply interest to cash from previous step
-            interest = cash * (np.exp(r * dt) - 1)
-            cash += interest
+            # 1. Accrue Interest on Cash
+            # Discrete compounding match dt
+            interest_earned = cash * (np.exp(r * dt) - 1)
+            cash += interest_earned
+            
+            # 2. Accrue Dividends on Shares Held
+            # If we hold shares, we receive continuous dividend yield q
+            # Cash += Shares * S * (exp(q*dt) - 1)
+            # dividend_received = shares_held * S[i-1] * (np.exp(q * dt) - 1)
+            # Or use approximation q * S * dt. Exponential is more rigorous.
+            # Note: We use previous price or average price? Continuous yield implies we earned it over the interval.
+            # Using S[i-1] (start of interval) is standard for forward Euler.
+            dividend_cash = shares_held * S[i-1] * (np.exp(q * dt) - 1)
+            cash += dividend_cash
             
             if i < N:
-                # Adjust Hedge
-                # We need `curr_delta` shares. We have `shares_held`.
+                # Rebalance Hedge
                 shares_to_buy = curr_delta - shares_held
                 cost = shares_to_buy * curr_S
                 
                 cash -= cost
                 shares_held = curr_delta
             else:
-                # Expiry (i == N)
-                # Option Payoff (Liability)
-                payoff = 0.0
-                if option_type == "call":
-                    payoff = max(curr_S - K, 0)
-                else:
-                    payoff = max(K - curr_S, 0)
-                
-                # We hold shares_held. Value = shares_held * S
-                # But typically we liquidate everything or settle.
-                # Let's value the portfolio:
-                # Value = SharesValue + Cash - Payoff
-                pass
+                # Expiry Settlement
+                pass # We just mark to market below
 
         # Record State
         option_prices[i] = curr_opt_val
         deltas[i] = curr_delta
         
         # Mark to Market PnL
-        # PnL = (Shares * CurrentPrice + Cash) - CurrentOptionPrice
+        # PnL = (Asset Value) - (Liability Value)
+        # Asset = Shares * S + Cash
+        # Liability = Option Value
         portfolio_asset_value = shares_held * curr_S + cash
         pnls[i] = portfolio_asset_value - curr_opt_val
 
@@ -130,15 +140,3 @@ def simulate_delta_hedging(
         "pnl": pnls.tolist()
     }
 
-def _black_scholes(S, K, T, r, sigma, type_):
-    d1 = (np.log(S / K) + (r + 0.5 * sigma**2) * T) / (sigma * np.sqrt(T))
-    d2 = d1 - sigma * np.sqrt(T)
-    
-    if type_ == "call":
-        price = S * norm.cdf(d1) - K * np.exp(-r * T) * norm.cdf(d2)
-        delta = norm.cdf(d1)
-    else:
-        price = K * np.exp(-r * T) * norm.cdf(-d2) - S * norm.cdf(-d1)
-        delta = norm.cdf(d1) - 1
-        
-    return {"price": price, "delta": delta}

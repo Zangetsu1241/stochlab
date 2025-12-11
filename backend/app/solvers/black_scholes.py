@@ -9,6 +9,7 @@ def calculate_black_scholes(
     T: float,
     r: float,
     sigma: float,
+    q: float = 0.0,
     option_type: str = "call"
 ) -> Dict[str, float]:
     """
@@ -26,6 +27,8 @@ def calculate_black_scholes(
         Risk-free interest rate (decimal, e.g., 0.05 for 5%).
     sigma : float
         Volatility of the underlying asset (decimal, e.g., 0.2 for 20%).
+    q : float
+        Dividend yield (decimal, e.g., 0.02 for 2%).
     option_type : str
         "call" or "put".
 
@@ -56,7 +59,7 @@ def calculate_black_scholes(
         raise ValueError("Option type must be 'call' or 'put'.")
 
     # D1 and D2 calculation
-    d1 = (np.log(S / K) + (r + 0.5 * sigma**2) * T) / (sigma * np.sqrt(T))
+    d1 = (np.log(S / K) + (r - q + 0.5 * sigma**2) * T) / (sigma * np.sqrt(T))
     d2 = d1 - sigma * np.sqrt(T)
 
     # CDF and PDF
@@ -77,23 +80,33 @@ def calculate_black_scholes(
     # Common terms
     sqrt_T = np.sqrt(T)
     disc_K = K * np.exp(-r * T)
+    disc_S = S * np.exp(-q * T)
     
     if option_type == "call":
-        price = S * N_d1 - disc_K * N_d2
-        delta = N_d1
+        price = disc_S * N_d1 - disc_K * N_d2
+        delta = np.exp(-q * T) * N_d1
         rho = K * T * np.exp(-r * T) * N_d2
-        theta = (- (S * n_d1 * sigma) / (2 * sqrt_T) 
-                 - r * K * np.exp(-r * T) * N_d2)
+        
+        # Theta for Call
+        term1 = - (S * np.exp(-q * T) * n_d1 * sigma) / (2 * sqrt_T)
+        term2 = - r * K * np.exp(-r * T) * N_d2
+        term3 = + q * S * np.exp(-q * T) * N_d1
+        theta = term1 + term2 + term3
+        
     else: # put
-        price = disc_K * N_minus_d2 - S * N_minus_d1
-        delta = N_d1 - 1
+        price = disc_K * N_minus_d2 - disc_S * N_minus_d1
+        delta = np.exp(-q * T) * (N_d1 - 1)
         rho = -K * T * np.exp(-r * T) * N_minus_d2
-        theta = (- (S * n_d1 * sigma) / (2 * sqrt_T) 
-                 + r * K * np.exp(-r * T) * N_minus_d2)
+        
+        # Theta for Put
+        term1 = - (S * np.exp(-q * T) * n_d1 * sigma) / (2 * sqrt_T)
+        term2 = + r * K * np.exp(-r * T) * N_minus_d2
+        term3 = - q * S * np.exp(-q * T) * N_minus_d1
+        theta = term1 + term2 + term3
 
-    # Gamma and Vega are the same for Call and Put
-    gamma = n_d1 / (S * sigma * sqrt_T)
-    vega = S * sqrt_T * n_d1
+    # Gamma and Vega are the same for Call and Put (adjusted for q)
+    gamma = (np.exp(-q * T) * n_d1) / (S * sigma * sqrt_T)
+    vega = S * np.exp(-q * T) * sqrt_T * n_d1
 
     return {
         "price": float(price),
